@@ -1,1 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RainHarvest Calculator</title>
+<meta name="description" content="Free rainwater harvesting calculator. Estimate how many litres your rooftop can collect, tank size, recharge pit and savings.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%232bb3d1' d='M12 2.5c3.6 4.4 6 7.6 6 11a6 6 0 0 1-12 0c0-3.4 2.4-6.6 6-11z'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Mukta:wght@400;500;600;700&family=Noto+Sans+Gurmukhi:wght@400;600;700&display=swap" rel="stylesheet">
+<script>
+(function(){var d=document.documentElement,s=null,k=false;try{s=localStorage.getItem('rh-theme')}catch(e){}try{k=s?s==='dark':matchMedia('(prefers-color-scheme: dark)').matches}catch(e){}d.setAttribute('data-theme',k?'dark':'light')})();
+</script>
+<style>
+:root{--bg:#edf4f3;--sf:#fff;--tx:#10292e;--mu:#4a656a;--bd:#cde0df;--fd:#fff;--br:#0e6f82;--bt:#fff;--ink:#0a2e36;--gold:#f2a93b;--gi:#2b1b00;--err:#b3261e;--wa:#16803f;--dp:"Bricolage Grotesque","Mukta","Noto Sans Gurmukhi",system-ui,sans-serif;--bp:"Mukta","Noto Sans Gurmukhi",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root[data-theme="dark"]{--bg:#08171b;--sf:#0f2328;--tx:#e3f1f1;--mu:#93b0b3;--bd:#1f3c42;--fd:#0a1b1f;--br:#4cc9e2;--bt:#04222a;--err:#ff8a80}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html{scroll-behavior:smooth;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;font:17px/1.6 var(--bp);background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--ink);z-index:10}
+h1,h2,h3{font-family:var(--dp);line-height:1.15;margin:0}p{margin:0}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}.muted{color:var(--mu)}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.hero{position:relative;background:var(--ink);color:#eaf6f6;overflow:hidden}
+.top{display:flex;justify-content:space-between;align-items:center;padding-top:18px}
+.brand{display:flex;align-items:center;gap:8px;font:700 1.1rem var(--dp);color:#fff}
+.brand svg{width:22px;height:22px;fill:var(--gold)}
+.pill{font:600 .95rem var(--bp);color:#fff;cursor:pointer;background:none;border:1.5px solid rgba(255,255,255,.4);border-radius:999px;padding:6px 16px;min-height:40px}
+.hg{display:grid;grid-template-columns:1.15fr .85fr;gap:48px;align-items:center;padding-top:54px;padding-bottom:150px}
+h1{font-size:clamp(2.7rem,7.2vw,4.8rem);font-weight:800;letter-spacing:-.025em;line-height:1;color:#fff}
+.lead{margin:20px 0 28px;font-size:1.2rem;max-width:36ch;color:#cfe6e8}.small{margin-top:14px;font-size:.95rem;color:#9cc3c8}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:700 1.02rem var(--bp);text-decoration:none;cursor:pointer;border:0;border-radius:12px;padding:12px 20px;min-height:48px}
+.btn:disabled{opacity:.6;cursor:wait}
+.gold{background:var(--gold);color:var(--gi)}.pri{background:var(--br);color:var(--bt);flex:1}
+.ghost{background:none;color:var(--tx);border:1.5px solid var(--bd)}.results .ghost{color:#fff;border-color:rgba(255,255,255,.45)}.wa{background:var(--wa);color:#fff}
+.sum{margin:0;max-width:380px;justify-self:end;width:100%}
+.sr{display:grid;grid-template-columns:38px 1fr;align-items:baseline;padding:10px 0}
+.sr .op{font:500 2rem var(--dp);color:#7fb5bb;text-align:center}
+.sr .n{font:700 clamp(2rem,5vw,2.8rem)/1 var(--dp);color:#fff}.sr .w{grid-column:2;color:#9cc3c8}
+.sr.t{border-top:3px solid var(--gold);margin-top:8px;padding-top:16px}.sr.t .n,.sr.t .op{color:var(--gold)}
+.waves{position:absolute;left:0;bottom:-1px;width:100%;height:90px}
+main{position:relative;z-index:2}
+.calc{display:grid;grid-template-columns:1.1fr .9fr;gap:24px;align-items:start;margin-top:-64px}
+.panel{background:var(--sf);border:1px solid var(--bd);border-radius:24px;padding:30px;box-shadow:0 18px 40px -22px rgba(10,46,54,.35)}
+.panel h2{font-size:1.7rem;margin-bottom:6px}.field{margin-top:18px}
+label{display:block;font-weight:600;margin-bottom:6px}
+input,select{width:100%;min-height:48px;padding:10px 14px;font:inherit;color:var(--tx);background:var(--fd);border:1.5px solid var(--bd);border-radius:10px}
+select{appearance:none;-webkit-appearance:none;padding-right:38px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%236c8a8f' stroke-width='2'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+input[aria-invalid="true"]{border-color:var(--err)}
+.row{display:grid;grid-template-columns:1fr 130px;gap:10px}
+.hint{margin-top:6px;font-size:.92rem;color:var(--mu)}.error{margin-top:6px;font-weight:600;color:var(--err)}
+.adv{margin-top:22px;border-top:1px solid var(--bd);padding-top:12px}
+.adv summary,.faq summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px;font-weight:600}
+.adv summary::-webkit-details-marker,.faq summary::-webkit-details-marker{display:none}
+.adv summary::after,.faq summary::after{content:"+";font-size:1.5rem;color:var(--br)}
+details[open]>summary::after{content:"\2013"}
+.ag{display:grid;grid-template-columns:1fr 1fr;column-gap:16px}
+.act{display:flex;gap:10px;margin-top:26px}
+.formula{margin-top:18px;padding-top:14px;border-top:1px solid var(--bd);font-size:.95rem;color:var(--mu)}
+.results{background:var(--ink);color:#e6f4f4;border-radius:24px;padding:28px;position:sticky;top:16px}
+.results h2{color:#fff;font-size:1.35rem;margin-bottom:16px}
+.results:not(.has) .data,.results.has .empty{display:none}
+.rt{display:flex;gap:22px;align-items:center}
+.lbl{color:#9cc3c8;font-size:.95rem}.big{font:800 clamp(2rem,5.5vw,2.9rem)/1.05 var(--dp);color:#fff;overflow-wrap:anywhere}
+.unit{font:500 1rem var(--bp);color:#9cc3c8;margin-left:6px}.covers{margin-top:10px;color:#cfe6e8}
+.pct{font:700 1.6rem var(--dp);color:var(--gold);margin-right:6px}
+.tank{width:100px;flex:none}#water{transition:transform 1.3s cubic-bezier(.2,.8,.2,1)}
+.rows{margin:20px 0 0;padding:0}.rows>div{display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-top:1px solid rgba(255,255,255,.14)}
+.rows dt{color:#9cc3c8}.rows dd{margin:0;font-weight:600;text-align:right}
+.bars{display:grid;grid-template-columns:repeat(12,1fr);gap:5px;height:90px;align-items:end;margin-top:16px}
+.bar{display:flex;flex-direction:column;justify-content:flex-end;height:100%;align-items:center;font-size:.8rem;color:#9cc3c8}
+.bar i{display:block;width:100%;background:#2bb3d1;border-radius:4px 4px 0 0}
+.note{margin-top:8px;font-size:.92rem;color:#9cc3c8}
+.ra{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.ra .btn{min-height:44px;padding:9px 16px}
+.block{padding-top:76px}h2.h{font-size:clamp(1.7rem,4vw,2.3rem);letter-spacing:-.01em;margin-bottom:22px}
+.ai{display:grid;gap:14px}.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:600 .95rem var(--bp);color:var(--tx);background:none;border:1.5px solid var(--bd);border-radius:999px;padding:7px 14px;cursor:pointer;min-height:40px}
+.chip:hover{border-color:var(--br)}
+.ask{display:flex;gap:10px}.ask input{flex:1}
+.out{background:var(--fd);border:1.5px solid var(--bd);border-radius:14px;padding:16px 18px}
+.out p+p{margin-top:8px}
+.aitop{display:flex;flex-wrap:wrap;gap:12px;align-items:end}.aitop .field{margin:0;min-width:190px}
+.why{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:28px 56px}
+.why li{display:flex;gap:16px}.why .ico{flex:none;width:50px;height:50px;display:grid;place-items:center;font-size:1.5rem;border-radius:14px;background:color-mix(in srgb,var(--br) 14%,transparent)}
+.why h3,.flow h3{font-size:1.18rem;margin-bottom:4px}.why p,.flow p{color:var(--mu);max-width:46ch}
+.flow{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;counter-reset:s}
+.flow li{position:relative;counter-increment:s;padding-top:56px}
+.flow li::before{content:counter(s);position:absolute;top:0;left:0;width:40px;height:40px;display:grid;place-items:center;border-radius:50%;font:700 1rem var(--dp);background:var(--br);color:var(--bt)}
+.tw{overflow-x:auto;border:1px solid var(--bd);border-radius:16px;background:var(--sf)}
+table{border-collapse:collapse;width:100%;min-width:480px}th,td{text-align:left;padding:13px 18px;border-bottom:1px solid var(--bd)}
+th{font:700 1rem var(--dp)}tr:last-child td{border:0}
+.faq details{border-top:1px solid var(--bd)}.faq details:last-child{border-bottom:1px solid var(--bd)}
+.faq summary{padding:18px 0;font:600 1.12rem var(--dp)}.faq details p{padding:0 0 20px;color:var(--mu);max-width:70ch}
+.band{margin-top:80px;background:var(--ink);color:#e6f4f4;border-radius:28px;padding:40px;display:flex;flex-wrap:wrap;gap:20px 40px;align-items:center;justify-content:space-between}
+.band h2{color:#fff;font-size:clamp(1.5rem,3.6vw,2rem);margin-bottom:6px}.band p{color:#b8d7da;max-width:48ch}
+footer{margin-top:60px;padding:24px 20px 40px;text-align:center;color:var(--mu);font-size:.95rem}
+@media(max-width:860px){.hg{grid-template-columns:1fr;gap:34px;padding-top:34px;padding-bottom:120px}.sum{justify-self:start}.calc{grid-template-columns:1fr;margin-top:-56px}.results{position:static}.why{grid-template-columns:1fr}.flow{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){body{font-size:16.5px}.panel,.results{padding:22px 18px;border-radius:20px}.ag{grid-template-columns:1fr}.rt{flex-direction:column;align-items:flex-start}.act,.ask{flex-direction:column}.flow{grid-template-columns:1fr}.band{padding:28px 22px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 
+/* premium layer */
+:root{--sh:0 1px 0 rgba(255,255,255,.7) inset,0 34px 60px -32px rgba(7,38,46,.5),0 2px 6px rgba(7,38,46,.06);--g1:#f7c15f;--g2:#e8912a}
+:root[data-theme="dark"]{--sh:0 1px 0 rgba(255,255,255,.05) inset,0 34px 60px -32px #000}
+body{background:radial-gradient(1100px 480px at 90% -8%,color-mix(in srgb,var(--br) 14%,transparent),transparent 60%),var(--bg);letter-spacing:.004em}
+.hero{background:radial-gradient(700px 380px at 82% 22%,rgba(43,179,209,.4),transparent 65%),radial-gradient(560px 380px at 0 100%,rgba(242,169,59,.16),transparent 60%),linear-gradient(160deg,#0a2e36,#06222a 55%,#041a21)}
+.hero::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.08) 1px,transparent 1px);background-size:22px 22px;-webkit-mask-image:linear-gradient(#000,transparent 80%);mask-image:linear-gradient(#000,transparent 80%);pointer-events:none}
+.hero>.wrap{position:relative;z-index:1}
+h1{background:linear-gradient(180deg,#fff 30%,#a9dfea);-webkit-background-clip:text;background-clip:text;color:transparent;animation:rise .9s cubic-bezier(.2,.8,.2,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}}
+.pill{background:rgba(255,255,255,.08);backdrop-filter:blur(8px);transition:background .2s}.pill:hover{background:rgba(255,255,255,.18)}
+.sum{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:26px;padding:16px 26px;backdrop-filter:blur(14px);box-shadow:0 30px 60px -30px #000}
+.btn{transition:transform .18s,box-shadow .18s,filter .18s}.btn:hover{transform:translateY(-1px);filter:brightness(1.06)}
+.gold{background:linear-gradient(135deg,var(--g1),var(--g2));box-shadow:0 10px 24px -10px rgba(232,145,42,.75)}
+.pri{background:linear-gradient(135deg,color-mix(in srgb,var(--br) 78%,#fff),var(--br));box-shadow:0 10px 24px -12px var(--br)}
+.panel{box-shadow:var(--sh);border-radius:28px}
+.results{background:radial-gradient(520px 320px at 100% 0,rgba(43,179,209,.28),transparent 60%),linear-gradient(170deg,#0c3640,#07222a);border:1px solid rgba(255,255,255,.1);border-radius:28px;box-shadow:0 40px 70px -35px rgba(4,26,33,.85)}
+input,select{transition:border-color .2s,box-shadow .2s}input:focus,select:focus{outline:0;border-color:var(--br);box-shadow:0 0 0 4px color-mix(in srgb,var(--br) 22%,transparent)}
+.big,.n,.pct{font-variant-numeric:tabular-nums}.big{background:linear-gradient(180deg,#fff,#a9dfea);-webkit-background-clip:text;background-clip:text;color:transparent}
+.why .ico{background:linear-gradient(135deg,color-mix(in srgb,var(--br) 22%,transparent),color-mix(in srgb,var(--gold) 22%,transparent));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--br) 28%,transparent)}
+.flow li::before{background:linear-gradient(135deg,var(--br),color-mix(in srgb,var(--br) 55%,#000));box-shadow:0 8px 18px -8px var(--br)}
+.tw{box-shadow:var(--sh);border-radius:20px}th{background:color-mix(in srgb,var(--br) 9%,transparent)}
+.band{background:radial-gradient(520px 260px at 90% 0,rgba(242,169,59,.3),transparent 60%),linear-gradient(135deg,#0c3a45,#06222a);box-shadow:0 40px 70px -40px rgba(4,26,33,.9)}
+.bar i{background:linear-gradient(#5fd6ee,#1e8fa8)}
+.pm{margin-top:20px}.pml{display:flex;justify-content:space-between;gap:12px;color:#9cc3c8}.pml b{color:var(--gold);font-family:var(--dp)}
+.pmt{height:10px;border-radius:99px;background:rgba(255,255,255,.12);margin-top:8px;overflow:hidden}.pmt i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#5fd6ee,var(--gold));transition:width 1s cubic-bezier(.2,.8,.2,1)}
+@media(prefers-reduced-motion:reduce){h1{animation:none}}
+</style>
+</head>
+<body>
+<header class="hero">
+ <div class="wrap top"><div class="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c3.6 4.4 6 7.6 6 11a6 6 0 0 1-12 0c0-3.4 2.4-6.6 6-11z"/></svg><span>RainHarvest Calculator</span></div><button type="button" class="pill" id="theme" aria-label="Switch light or dark mode">☾</button></div>
+ <div class="wrap hg">
+  <div><h1>Every Drop Counts</h1><p class="lead">Save water, save life. Find out how much rainwater your rooftop can collect in a year, then ask our helper how to use it.</p><a class="btn gold" href="#calculator">Calculate my rooftop</a><p class="small">Free, instant and no signup needed.</p></div>
+  <figure class="sum"><div class="sr"><span class="op"></span><span class="n">1 mm</span><span class="w">of rain</span></div><div class="sr"><span class="op">×</span><span class="n">1 m²</span><span class="w">of roof</span></div><div class="sr t"><span class="op">=</span><span class="n">1 litre</span><span class="w">of water</span></div></figure>
+ </div>
+ <svg class="waves" viewBox="0 0 1200 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 40c150-40 300 40 450 0s300-40 450 0 210 20 300 0v50H0z" fill="var(--bg)" opacity=".4"/><path d="M0 60c150-30 300 30 450 0s300-30 450 0 210 14 300 0v30H0z" fill="var(--bg)"/></svg>
+</header>
+<main>
+<section id="calculator" class="wrap calc">
+ <div id="form" class="panel">
+  <h2>Calculate Your Rainwater Potential</h2><p class="muted">Enter your rooftop details to estimate annual rainwater collection.</p>
+  <div class="field"><label for="city">Your city</label><input id="city" list="cities" placeholder="Type a city, e.g. Pune" autocomplete="off"><datalist id="cities"></datalist><p class="hint" id="cityHint" aria-live="polite"></p></div>
+  <div class="field"><label for="area">Rooftop Area</label><div class="row"><input id="area" type="number" inputmode="decimal" min="0.01" step="any" placeholder="e.g. 100" aria-describedby="areaErr"><select id="unit" aria-label="Area unit"><option value="m2">m²</option><option value="sqft">sq ft</option></select></div><div class="error" id="areaErr" role="alert" hidden></div></div>
+  <div class="field"><label for="rain">Annual Rainfall (mm)</label><input id="rain" type="number" inputmode="decimal" min="0" step="any" placeholder="e.g. 800" aria-describedby="rainHint rainErr"><p class="hint" id="rainHint">City values are approximate long-term averages. Use your local figure for a better estimate.</p><div class="error" id="rainErr" role="alert" hidden></div></div>
+  <div class="field"><label for="eff">Collection efficiency (%)</label><div class="row"><input id="eff" type="number" inputmode="decimal" min="1" max="100" step="any" value="80" aria-describedby="effErr"><select id="effp" aria-label="Roof type preset"><option value="">Custom</option><option value="90">Metal 90%</option><option value="80" selected>Concrete 80%</option><option value="70">Tiled 70%</option><option value="40">Terrace garden 40%</option></select></div><p class="hint">Type your own value, or pick a roof type to fill it in.</p><div class="error" id="effErr" role="alert" hidden></div></div>
+  <div class="field"><label for="pur">Water purification method</label><select id="pur"><option value="90" selected>Sand + charcoal filter (about 90% usable)</option><option value="85">Filter + UV or chlorine (about 85%)</option><option value="55">Filter + RO (about 55%)</option></select><p class="hint">Shows how much of the harvested water stays usable as clean drinking water after treatment.</p></div>
+  <details class="adv"><summary>More options (optional)</summary><div class="ag">
+   <div class="field"><label for="people">People in household</label><input id="people" type="number" inputmode="numeric" min="1" step="1" value="4"></div>
+   <div class="field"><label for="lpcd">Daily water use per person (litres)</label><input id="lpcd" type="number" inputmode="decimal" min="1" step="any" value="135"></div>
+   <div class="field"><label for="dry">Dry-period storage (days)</label><input id="dry" type="number" inputmode="numeric" min="0" step="1" value="30"></div>
+   <div class="field"><label for="cost">Water cost (₹ per 1,000 litres)</label><input id="cost" type="number" inputmode="decimal" min="0" step="any" placeholder="e.g. 20"></div></div>
+   <p class="hint">About 135 litres per person is a common urban planning figure.</p></details>
+  <div class="act"><button type="button" class="btn pri" id="calc">Calculate Rainwater</button><button type="button" class="btn ghost" id="reset">Reset</button></div>
+  <p class="formula">Harvest (litres) = Roof area (m²) × Rainfall (mm) × Efficiency</p>
+ </div>
+ <aside id="results" class="results" aria-live="polite">
+  <h2>Your Results</h2>
+  <p class="empty">Enter your roof area and rainfall, then press Calculate to see your numbers.</p>
+  <div class="data">
+   <div class="rt"><div><div class="lbl">You can collect</div><div class="big"><span id="rL">0</span><span class="unit">litres / year</span></div><p class="covers"><span class="pct" id="rP">0%</span>of your household’s yearly water need</p></div>
+    <svg class="tank" viewBox="0 0 100 150" aria-hidden="true"><defs><clipPath id="tc"><rect x="10" y="10" width="80" height="130" rx="10"/></clipPath></defs><rect x="10" y="10" width="80" height="130" rx="10" fill="rgba(255,255,255,.07)"/><g clip-path="url(#tc)"><g id="water" style="transform:translateY(130px)"><rect x="0" y="10" width="100" height="150" fill="#2bb3d1" opacity=".9"/></g></g><rect x="10" y="10" width="80" height="130" rx="10" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="2.5"/></svg></div>
+   <div class="pm"><div class="pml"><span>Purification yield</span><b id="rPy"></b></div><div class="pmt"><i id="pmf"></i></div></div>
+   <dl class="rows"><div><dt>Daily average</dt><dd id="rD"></dd></div><div><dt>Household need per year</dt><dd id="rN"></dd></div><div><dt>Suggested tank size</dt><dd id="rT"></dd></div><div><dt>Recharge pit (about)</dt><dd id="rPit"></dd></div><div><dt>Wettest month (Jul)</dt><dd id="rW"></dd></div><div><dt>Purified, safe-to-drink water</dt><dd id="rU"></dd></div><div><dt>Drinking need covered</dt><dd id="rUp"></dd></div><div><dt>Water value saved</dt><dd id="rS"></dd></div></dl>
+   <div class="bars" id="bars" aria-label="Monthly rainwater estimate"></div><p class="note">Monthly split follows a typical monsoon pattern. Real months vary.</p>
+   <div class="ra"><button type="button" class="btn gold" id="plan">Get my plan</button><button type="button" class="btn ghost" id="dl">Download report</button><a class="btn wa" id="wa" target="_blank" rel="noopener">Share on WhatsApp</a></div>
+  </div>
+ </aside>
+</section>
+
+<section id="ai" class="wrap block">
+ <h2 class="h">Ask RainHarvest Helper</h2>
+ <div class="panel ai">
+  <div class="aitop"><div class="field"><label for="lang">Answer language</label><select id="lang"><option value="en">English</option><option value="hi">हिन्दी</option><option value="hing">Hinglish</option><option value="pa">ਪੰਜਾਬੀ</option></select></div><button type="button" class="btn gold" id="plan2">Make my plan</button></div>
+  <p class="muted">Ask about tank size, filters, recharge pits, drinking safety or monsoon upkeep. If you have run the calculator, answers use your numbers.</p>
+  <div class="chips"><button type="button" class="chip" data-q="tank size">Tank size</button><button type="button" class="chip" data-q="make it drinkable">Make it drinkable</button><button type="button" class="chip" data-q="recharge pit">Recharge pit</button><button type="button" class="chip" data-q="monsoon checklist">Monsoon checklist</button><button type="button" class="chip" data-q="purification %">Purification %</button></div>
+  <div class="ask"><input id="q" aria-label="Your question" placeholder="Type your question…" autocomplete="off"><button type="button" class="btn pri" id="ask" style="flex:none">Ask</button></div>
+  <div class="out" id="aiOut" aria-live="polite" hidden></div>
+ </div>
+</section>
+
+<section class="wrap block"><h2 class="h">Why harvest rainwater</h2>
+ <ul class="why"><li><span class="ico">💧</span><div><h3>Lower water bills</h3><p>Stored rain covers gardening, cleaning and flushing, often a third of a home’s water use.</p></div></li><li><span class="ico">🌱</span><div><h3>Refills groundwater</h3><p>A recharge pit sends monsoon runoff underground instead of down the drain.</p></div></li><li><span class="ico">🛟</span><div><h3>Backup in dry spells</h3><p>A full tank keeps taps running when tankers are late or supply is cut.</p></div></li><li><span class="ico">🌊</span><div><h3>Less waterlogging</h3><p>Capturing roof runoff eases pressure on street drains in heavy rain.</p></div></li></ul></section>
+
+<section class="wrap block"><h2 class="h">How a system works</h2>
+ <ol class="flow"><li><h3>Catch</h3><p>Keep the roof clean and sloped so rain runs to one edge.</p></li><li><h3>Carry</h3><p>Gutters and down pipes with a mesh guard move water without leaves.</p></li><li><h3>Clean</h3><p>A first-flush diverter drops the dirty first rain, then a sand and charcoal filter polishes the rest.</p></li><li><h3>Keep</h3><p>Send water to a covered tank for use or to a recharge pit for the ground.</p></li></ol></section>
+
+<section class="wrap block"><h2 class="h">Roof type and efficiency</h2>
+ <div class="tw"><table><thead><tr><th>Roof type</th><th>Typical efficiency</th><th>What to know</th></tr></thead><tbody><tr><td>Metal sheet</td><td>85–90%</td><td>Smooth, sheds water fast. Best pick for drinking after treatment.</td></tr><tr><td>Concrete (RCC)</td><td>75–85%</td><td>Most common. Keep the terrace swept and slope the drains.</td></tr><tr><td>Clay tiles</td><td>65–75%</td><td>Rough surface holds some water and dust.</td></tr><tr><td>Terrace garden</td><td>30–50%</td><td>Soil soaks up rain. Good for plants, not for storage.</td></tr></tbody></table></div></section>
+
+<section class="wrap block faq"><h2 class="h">Common questions</h2>
+ <details><summary>How is the harvest calculated?</summary><p>Roof area in square metres × yearly rainfall in millimetres × efficiency. One millimetre of rain on one square metre of roof gives one litre.</p></details>
+ <details><summary>Is rainwater safe to drink?</summary><p>Not straight off the roof. Use a first-flush diverter, a sand and charcoal filter, then disinfect by boiling, chlorine or UV. Keep the tank covered. For drinking, ask a local water-quality lab to test it.</p></details>
+ <details><summary>How accurate are these numbers?</summary><p>They are planning estimates. City rainfall is an approximate long-term average, and real rain changes every year. Use your local weather office figure when you have it.</p></details>
+ <details><summary>How is tank size decided?</summary><p>Daily household need × dry-period days, but never more than half of the yearly harvest, rounded up to a common tank size.</p></details>
+ <div class="band"><div><h2>Ready to catch the next monsoon?</h2><p>Run the numbers, then plan your tank and recharge pit before the rains arrive.</p></div><a class="btn gold" href="#calculator">Back to calculator</a></div>
+</section>
+</main>
+<footer>RainHarvest Calculator · Estimates for planning only. Check local rules and get a professional for large systems.</footer>
+
+<script>
+(function(){
+"use strict";
+var $=function(i){return document.getElementById(i)};
+/* Optional: set to your own server URL that accepts POST {question,lang,context} and returns {answer}. Never put API keys in this file. */
+var AI_ENDPOINT="";
+var CITY={Delhi:790,Mumbai:2400,Chennai:1400,Kolkata:1800,Bengaluru:970,Hyderabad:800,Pune:720,Ahmedabad:800,Jaipur:550,Lucknow:1000,Chandigarh:1100,Ludhiana:700,Jalandhar:700,Phagwara:700,Amritsar:650,Bhopal:1150,Patna:1100,Kochi:3000,Thiruvananthapuram:1800,Guwahati:1700,Shimla:1500,Dehradun:2100,Ranchi:1400,Bhubaneswar:1500,Nagpur:1150,Indore:950,Surat:1100,Visakhapatnam:1100,Coimbatore:700,Mysuru:800,Raipur:1300,Srinagar:650,Goa:3000};
+var MON=[3,3,3,4,6,14,22,20,12,6,4,3],MN="JFMAMJJASOND".split(""),SIZES=[500,1000,2000,3000,5000,7500,10000,15000,20000,30000,50000,100000];
+var last=null,nf=new Intl.NumberFormat("en-IN",{maximumFractionDigits:0}),n1=new Intl.NumberFormat("en-IN",{maximumFractionDigits:1});
+var fmt=function(v){return nf.format(Math.round(v))};
+$("cities").innerHTML=Object.keys(CITY).map(function(c){return'<option value="'+c+'">'}).join("");
+
+/* theme */
+function setIcon(){$("theme").textContent=document.documentElement.getAttribute("data-theme")==="dark"?"☀":"☾"}
+$("theme").onclick=function(){var d=document.documentElement,k=d.getAttribute("data-theme")==="dark"?"light":"dark";d.setAttribute("data-theme",k);try{localStorage.setItem("rh-theme",k)}catch(e){}setIcon()};
+setIcon();
+
+/* city */
+function findCity(v){v=v.trim().toLowerCase();for(var c in CITY)if(c.toLowerCase()===v)return c;return null}
+$("city").addEventListener("input",function(){var c=findCity(this.value),h=$("cityHint");
+ if(c){$("rain").value=CITY[c];clr("rain");h.textContent="About "+fmt(CITY[c])+" mm of rain a year in "+c+" (approximate).";}
+ else h.textContent=this.value.trim()?"City not in our list. Please type your local yearly rainfall below.":"";});
+$("effp").onchange=function(){if(this.value){$("eff").value=this.value;clr("eff")}};
+$("eff").addEventListener("input",function(){var m=["90","80","70","40"].indexOf(this.value)>-1;$("effp").value=m?this.value:""});
+
+/* validation */
+function err(id,msg){var e=$(id+"Err"),i=$(id);e.textContent=msg;e.hidden=false;i.setAttribute("aria-invalid","true")}
+function clr(id){var e=$(id+"Err");if(e)e.hidden=true;$(id).removeAttribute("aria-invalid")}
+["area","rain","eff"].forEach(function(i){$(i).addEventListener("input",function(){clr(i)})});
+function num(id,def){var v=parseFloat($(id).value);return isFinite(v)?v:def}
+
+function calc(){
+ var ok=true,a=num("area",NaN),r=num("rain",NaN),e=num("eff",NaN);
+ if(!(a>0)){err("area","Enter a roof area greater than 0.");ok=false}
+ if(!(r>=0)){err("rain","Enter yearly rainfall in mm (0 or more).");ok=false}
+ if(!(e>=1&&e<=100)){err("eff","Efficiency must be between 1 and 100.");ok=false}
+ if(!ok){var f=document.querySelector("[aria-invalid=true]");if(f)f.focus();return}
+ var m2=$("unit").value==="sqft"?a*0.092903:a,
+  people=Math.max(1,Math.round(num("people",4))),lpcd=Math.max(1,num("lpcd",135)),dry=Math.max(0,num("dry",30)),cost=Math.max(0,num("cost",0)),
+  pur=Math.min(100,Math.max(1,num("pur",90))),L=m2*r*e/100,daily=people*lpcd,need=daily*365,
+  tankRaw=Math.min(daily*dry,L/2),tank=SIZES.find(function(s){return s>=Math.max(tankRaw,1)})||Math.ceil(tankRaw/10000)*10000,
+  pit=m2*0.0125*e/100,pct=need?L/need*100:0;
+ if(L<=0)tank=0;
+ last={m2:m2,r:r,e:e,L:L,daily:daily,need:need,tank:tank,pit:pit,pct:pct,people:people,saved:L/1000*cost,cost:cost,dry:dry,pur:pur,purL:L*pur/100,dnk:people*5*365};
+ render();
+}
+function render(){
+ var s=last,R=$("results");R.classList.add("has");
+ $("rL").textContent=fmt(s.L);
+ $("rP").textContent=s.pct>100?"100%+":Math.round(s.pct)+"%";
+ $("water").style.transform="translateY("+(130*(1-Math.min(100,s.pct)/100))+"px)";
+ $("rD").textContent=fmt(s.L/365)+" L";
+ $("rN").textContent=fmt(s.need)+" L";
+ $("rT").textContent=s.tank?fmt(s.tank)+" L":"Not needed";
+ $("rPit").textContent=s.pit>0?n1.format(s.pit)+" m³ ("+fmt(s.pit*1000)+" L)":"–";
+ $("rW").textContent=fmt(s.L*MON[6]/100)+" L";
+ $("rPy").textContent=s.pur+"%";$("pmf").style.width=s.pur+"%";$("rU").textContent=fmt(s.purL)+" L / year";$("rUp").textContent=dp(s);
+ $("rS").textContent=s.cost>0?"₹ "+fmt(s.saved)+" / year":"Add water cost to see";
+ var mx=Math.max.apply(null,MON);
+ $("bars").innerHTML=MON.map(function(p,i){return'<div class="bar" title="'+fmt(s.L*p/100)+' L"><i style="height:'+Math.max(3,p/mx*70)+'px"></i>'+MN[i]+'</div>'}).join("");
+ $("wa").href="https://wa.me/?text="+encodeURIComponent("My rooftop can collect about "+fmt(s.L)+" litres of rainwater a year ("+(s.pct>100?"100%+":Math.round(s.pct)+"%")+" of my household need). Try the RainHarvest Calculator: "+location.href.split("#")[0]);
+}
+$("calc").onclick=calc;
+["area","rain","eff","people","lpcd","dry","cost"].forEach(function(i){$(i).addEventListener("keydown",function(e){if(e.key==="Enter")calc()})});
+$("unit").onchange=function(){if(last)calc()};$("pur").onchange=function(){if(last)calc()};
+$("reset").onclick=function(){
+ ["city","area","rain","cost"].forEach(function(i){$(i).value=""});
+ $("eff").value=80;$("effp").value="80";$("people").value=4;$("lpcd").value=135;$("dry").value=30;$("unit").value="m2";$("pur").value="90";$("cityHint").textContent="";
+ ["area","rain","eff"].forEach(clr);last=null;$("results").classList.remove("has");$("water").style.transform="translateY(130px)";$("aiOut").hidden=true;
+};
+$("dl").onclick=function(){
+ if(!last)return;var s=last,t=["RainHarvest Report","==================",
+ "Roof area: "+n1.format(s.m2)+" m2","Annual rainfall: "+fmt(s.r)+" mm","Efficiency: "+s.e+"%",
+ "Annual harvest: "+fmt(s.L)+" litres","Daily average: "+fmt(s.L/365)+" litres","Household need: "+fmt(s.need)+" litres/year ("+s.people+" people)",
+ "Covers: "+(s.pct>100?"100%+":Math.round(s.pct)+"%")+" of yearly need","Suggested tank: "+fmt(s.tank)+" litres","Purified (safe-to-drink) water: "+fmt(s.purL)+" litres ("+s.pur+"% yield)","Recharge pit: about "+n1.format(s.pit)+" m3",
+ s.cost>0?"Water value saved: Rs "+fmt(s.saved)+" per year":"","","Planning estimate only."].filter(function(x){return x!==""}).join("\n");
+ var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([t],{type:"text/plain"}));a.download="rainharvest-report.txt";document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1000);
+};
+
+/* helper: built-in answers (work offline) */
+var LI={en:0,hi:1,hing:2,pa:3};
+function dp(s){var v=s.dnk?s.purL/s.dnk*100:0;return v>100?"100%+":Math.round(v)+"%"}
+function PUR(s){return[
+"Purification: "+(s?"with your method about "+s.pur+"% of the harvest stays usable, so about "+fmt(s.purL)+" litres a year is safe to drink ("+dp(s)+" of a 5 L/person/day drinking need). ":"")+"Typical yield: sand and charcoal filter about 90%, filter plus UV about 85%, filter plus RO about 55%. First-flush alone is not purification. Test the final water.",
+"शुद्धिकरण: "+(s?"आपके तरीके से करीब "+s.pur+"% पानी इस्तेमाल लायक रहता है, यानी साल में लगभग "+fmt(s.purL)+" लीटर पीने लायक ("+dp(s)+" पीने की ज़रूरत, 5 लीटर/व्यक्ति/दिन)। ":"")+"आम तौर पर: रेत-कोयला फिल्टर करीब 90%, फिल्टर+UV करीब 85%, फिल्टर+RO करीब 55%। सिर्फ फर्स्ट-फ्लश शुद्धिकरण नहीं है। पीने से पहले टेस्ट कराएं।",
+"Purification: "+(s?"aapke tareeke se lagbhag "+s.pur+"% paani use layak rehta hai, yaani saal mein lagbhag "+fmt(s.purL)+" litre peene layak ("+dp(s)+" peene ki zarurat, 5 litre/vyakti/din). ":"")+"Aam taur par: ret-koyla filter lagbhag 90%, filter+UV lagbhag 85%, filter+RO lagbhag 55%. Sirf first-flush purification nahi hai. Peene se pehle test karao."]}
+function PA(s){var tk=s?fmt(s.tank):"1,000",pt=s?n1.format(s.pit):"1";return{
+tank:"ਢੱਕੀ ਹੋਈ ਫੂਡ-ਗ੍ਰੇਡ ਟੈਂਕੀ ਚੁਣੋ। "+(s?"ਤੁਹਾਡੇ ਅੰਕੜਿਆਂ ਮੁਤਾਬਕ ਲਗਭਗ "+tk+" ਲੀਟਰ ਠੀਕ ਰਹੇਗੀ।":"ਟੈਂਕੀ = ਰੋਜ਼ ਦੀ ਲੋੜ × ਸੁੱਕੇ ਦਿਨ, ਪਰ ਸਾਲ ਭਰ ਦੇ ਜਮ੍ਹਾ ਪਾਣੀ ਦੇ ਅੱਧ ਤੋਂ ਵੱਧ ਨਹੀਂ।")+" ਓਵਰਫਲੋ ਪਾਈਪ ਰੀਚਾਰਜ ਪਿੱਟ ਨਾਲ ਜੋੜੋ।",
+drink:"ਛੱਤ ਦਾ ਪਾਣੀ ਸਿੱਧਾ ਪੀਣ ਯੋਗ ਨਹੀਂ ਹੁੰਦਾ। 1) ਫਸਟ-ਫਲੱਸ਼ ਡਾਇਵਰਟਰ 2) ਗਟਰ ਉੱਤੇ ਜਾਲੀ 3) ਰੇਤ ਤੇ ਕੋਲੇ ਦਾ ਫਿਲਟਰ 4) ਉਬਾਲੋ, ਕਲੋਰੀਨ ਜਾਂ UV ਵਰਤੋ। ਟੈਂਕੀ ਢੱਕ ਕੇ ਰੱਖੋ ਤੇ ਪੀਣ ਤੋਂ ਪਹਿਲਾਂ ਲੈਬ ਟੈਸਟ ਕਰਵਾਓ।",
+pit:"ਰੀਚਾਰਜ ਪਿੱਟ"+(s?" (ਤੁਹਾਡੀ ਛੱਤ ਲਈ ਲਗਭਗ "+pt+" m³)":"")+": 1 ਮੀਟਰ ਚੌੜਾ ਤੇ 1.5–2 ਮੀਟਰ ਡੂੰਘਾ ਪੁੱਟੋ। ਹੇਠਾਂ ਵੱਡੇ ਪੱਥਰ, ਫਿਰ ਕੰਕਰ, ਉੱਤੇ ਮੋਟੀ ਰੇਤ ਭਰੋ। ਨੀਂਹ ਤੋਂ 3 ਮੀਟਰ ਦੂਰ ਤੇ ਸੈਪਟਿਕ ਟੈਂਕ ਤੋਂ ਕਾਫ਼ੀ ਦੂਰ ਰੱਖੋ।",
+monsoon:"ਮੀਂਹ ਤੋਂ ਪਹਿਲਾਂ: ਛੱਤ, ਗਟਰ ਤੇ ਜਾਲੀ ਸਾਫ਼ ਕਰੋ, ਪਾਈਪ ਧੋਵੋ, ਟੈਂਕੀ ਦਾ ਢੱਕਣ ਤੇ ਓਵਰਫਲੋ ਵੇਖੋ। ਮੀਂਹ ਦੌਰਾਨ: ਹਰ ਵਾਰ ਤੋਂ ਬਾਅਦ ਫਸਟ-ਫਲੱਸ਼ ਖਾਲੀ ਕਰੋ। ਬਾਅਦ ਵਿੱਚ: ਫਿਲਟਰ ਸਾਫ਼ ਕਰੋ, ਲੀਕੇਜ ਤੇ ਮੱਛਰ ਵੇਖੋ।",
+plan:s?"ਤੁਹਾਡੀ ਯੋਜਨਾ: ਛੱਤ ਤੋਂ ਸਾਲ ਭਰ ਵਿੱਚ ਲਗਭਗ "+fmt(s.L)+" ਲੀਟਰ ਪਾਣੀ ਮਿਲੇਗਾ।\n1) ਗਟਰ, ਜਾਲੀ ਤੇ ਫਸਟ-ਫਲੱਸ਼ ਲਗਾਓ।\n2) ਲਗਭਗ "+tk+" ਲੀਟਰ ਦੀ ਢੱਕੀ ਟੈਂਕੀ ਲਗਾਓ।\n3) ਓਵਰਫਲੋ ਨੂੰ ਲਗਭਗ "+pt+" m³ ਦੇ ਰੀਚਾਰਜ ਪਿੱਟ ਵਿੱਚ ਭੇਜੋ।\n4) ਪਾਣੀ ਬਾਗ਼ਬਾਨੀ, ਸਫ਼ਾਈ ਤੇ ਫਲੱਸ਼ ਲਈ ਵਰਤੋ।":"ਪਹਿਲਾਂ ਕੈਲਕੁਲੇਟਰ ਚਲਾਓ, ਫਿਰ ਮੈਂ ਤੁਹਾਡੇ ਅੰਕੜਿਆਂ ਨਾਲ ਯੋਜਨਾ ਬਣਾਵਾਂਗਾ।",
+purify:"ਸ਼ੁੱਧੀਕਰਨ: "+(s?"ਤੁਹਾਡੇ ਤਰੀਕੇ ਨਾਲ ਲਗਭਗ "+s.pur+"% ਪਾਣੀ ਵਰਤੋਂ ਯੋਗ ਰਹਿੰਦਾ ਹੈ, ਯਾਨੀ ਸਾਲ ਵਿੱਚ ਲਗਭਗ "+fmt(s.purL)+" ਲੀਟਰ ਪੀਣ ਯੋਗ ("+dp(s)+" ਪੀਣ ਦੀ ਲੋੜ, 5 ਲੀਟਰ/ਵਿਅਕਤੀ/ਦਿਨ)। ":"")+"ਆਮ ਤੌਰ ਉੱਤੇ: ਰੇਤ-ਕੋਲਾ ਫਿਲਟਰ ਲਗਭਗ 90%, ਫਿਲਟਰ+UV ਲਗਭਗ 85%, ਫਿਲਟਰ+RO ਲਗਭਗ 55%। ਸਿਰਫ਼ ਫਸਟ-ਫਲੱਸ਼ ਸ਼ੁੱਧੀਕਰਨ ਨਹੀਂ ਹੈ। ਪੀਣ ਤੋਂ ਪਹਿਲਾਂ ਟੈਸਟ ਕਰਵਾਓ।",
+none:"ਮੈਂ ਟੈਂਕੀ ਦੇ ਆਕਾਰ, ਪਾਣੀ ਦੇ ਸ਼ੁੱਧੀਕਰਨ, ਪੀਣ ਦੀ ਸੁਰੱਖਿਆ, ਰੀਚਾਰਜ ਪਿੱਟ, ਮੀਂਹ ਦੀ ਸੰਭਾਲ ਜਾਂ ਪੂਰੀ ਯੋਜਨਾ ਵਿੱਚ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ। ਉੱਪਰ ਦਿੱਤੇ ਬਟਨ ਵਰਤੋ।"}}
+function kb(s){
+ var tk=s?fmt(s.tank):"1,000",pt=s?n1.format(s.pit):"1",d=s?fmt(s.dry):"30";
+ return{
+ tank:["Pick a covered, food-grade tank. "+(s?"For your numbers, about "+tk+" litres is a good start (your daily need × "+d+" dry days, capped at half the yearly harvest).":"A simple rule: daily household need × dry days, but not more than half of the yearly harvest.")+" Use an overflow pipe that leads to a recharge pit.","ढका हुआ फूड-ग्रेड टैंक चुनें। "+(s?"आपके हिसाब से करीब "+tk+" लीटर ठीक रहेगा।":"टैंक = रोज़ की ज़रूरत × सूखे दिन, पर सालाना जमा पानी के आधे से ज़्यादा नहीं।")+" ओवरफ्लो पाइप रिचार्ज पिट में जोड़ें।","Tank dhaka hua aur food-grade lo. "+(s?"Aapke numbers ke hisaab se lagbhag "+tk+" litre theek rahega.":"Rule: roz ki zarurat × sookhe din, par saal bhar ke jama paani ke aadhe se zyada nahi.")+" Overflow pipe ko recharge pit se jod do."],
+ drink:["Rainwater is not safe straight off the roof. Steps: 1) first-flush diverter, 2) mesh at the gutter, 3) sand and charcoal filter, 4) boil, chlorinate or use UV. Keep the tank covered and dark, and get it lab-tested before drinking.","छत से सीधा पानी पीने लायक नहीं होता। 1) फर्स्ट-फ्लश डायवर्टर 2) गटर पर जाली 3) रेत और कोयले का फिल्टर 4) उबालें, क्लोरीन या UV। टैंक ढका रखें और पीने से पहले लैब टेस्ट कराएं।","Chhat se seedha paani peene layak nahi hota. 1) first-flush diverter 2) gutter par jaali 3) ret aur koyle ka filter 4) ubaalo, chlorine ya UV. Tank dhaka rakho aur peene se pehle lab test karao."],
+ pit:["Recharge pit"+(s?" for your roof: about "+pt+" m³":"")+". Dig 1 m wide × 1.5–2 m deep, fill with big stones at the bottom, then gravel, then coarse sand on top. Keep it 3 m away from building foundations and well away from septic tanks. Put a silt trap before it.","रिचार्ज पिट"+(s?" (आपकी छत के लिए करीब "+pt+" m³)":"")+": 1 मीटर चौड़ा, 1.5–2 मीटर गहरा खोदें। नीचे बड़े पत्थर, फिर कंकड़, ऊपर मोटी रेत भरें। नींव से 3 मीटर दूर और सेप्टिक टैंक से काफ़ी दूर रखें।","Recharge pit"+(s?" (aapki chhat ke liye lagbhag "+pt+" m³)":"")+": 1 meter chauda, 1.5–2 meter gehra khodo. Neeche bade patthar, phir kankad, upar moti ret. Neenv se 3 meter door aur septic tank se kaafi door rakho."],
+ monsoon:["Before the rains: clean roof, gutters and mesh, flush the pipes, check the tank cover and overflow. During: empty the first-flush chamber after each storm. After: clean the filter, look for leaks and cracks, and check for mosquitoes.","बारिश से पहले: छत, गटर और जाली साफ करें, पाइप धोएं, टैंक का ढक्कन और ओवरफ्लो देखें। बारिश में: हर तूफान के बाद फर्स्ट-फ्लश खाली करें। बाद में: फिल्टर साफ करें, लीकेज और मच्छर देखें।","Barish se pehle: chhat, gutter aur jaali saaf karo, pipe dho lo, tank ka dhakkan aur overflow check karo. Barish mein: har toofan ke baad first-flush khaali karo. Baad mein: filter saaf karo, leakage aur machhar dekho."],
+ plan:[s?"Your plan: your roof can collect about "+fmt(s.L)+" litres a year, covering "+(s.pct>100?"100%+":Math.round(s.pct))+"% of household need.\n1) Fit gutters, mesh and a first-flush diverter.\n2) Install a covered tank of about "+tk+" litres.\n3) Send overflow to a recharge pit of about "+pt+" m³.\n4) Use stored water for gardening, cleaning and flushing, and treat it before any drinking use.":"Run the calculator first, then I can make a plan with your numbers.",s?"आपकी योजना: छत से सालाना करीब "+fmt(s.L)+" लीटर पानी मिलेगा।\n1) गटर, जाली और फर्स्ट-फ्लश लगाएं।\n2) करीब "+tk+" लीटर का ढका टैंक लगाएं।\n3) ओवरफ्लो को करीब "+pt+" m³ के रिचार्ज पिट में भेजें।\n4) पानी बागवानी, सफाई और फ्लश में इस्तेमाल करें।":"पहले कैलकुलेटर चलाएं, फिर मैं आपके नंबरों से योजना बनाऊंगा।",s?"Aapka plan: chhat se saal bhar mein lagbhag "+fmt(s.L)+" litre paani milega.\n1) Gutter, jaali aur first-flush lagao.\n2) Lagbhag "+tk+" litre ka dhaka tank lagao.\n3) Overflow ko lagbhag "+pt+" m³ ke recharge pit mein bhejo.\n4) Paani bagwani, safai aur flush mein use karo.":"Pehle calculator chalao, phir main aapke numbers se plan banaunga."]
+ };
+}
+function topic(q){q=q.toLowerCase();
+ if(/purif|shudh|शुद्ध|ਸ਼ੁੱਧ|\bro\b|\buv\b/.test(q))return"purify";
+ if(/plan|yojana|योजना|ਯੋਜਨਾ/.test(q))return"plan";
+ if(/drink|safe|filter|pee|peene|पीने|फिल्टर|ਪੀਣ|ਫਿਲਟਰ/.test(q))return"drink";
+ if(/pit|recharge|ground|रिचार्ज|ਪਿੱਟ|ਰੀਚਾਰਜ/.test(q))return"pit";
+ if(/monsoon|maint|check|upkeep|barish|बारिश|मानसून|ਮੀਂਹ|ਮਾਨਸੂਨ/.test(q))return"monsoon";
+ if(/tank|size|टैंक|ਟੈਂਕ/.test(q))return"tank";
+ return null}
+function show(text){var o=$("aiOut");o.innerHTML="";text.split("\n").forEach(function(l){var p=document.createElement("p");p.textContent=l;o.appendChild(p)});o.hidden=false}
+function ask(q){
+ q=(q||"").trim();if(!q)return;var lang=$("lang").value,b=$("ask"),t=topic(q);
+ var local=function(){if(lang==="pa"){show(PA(last)[t||"none"]);return}if(t==="purify"){show(PUR(last)[LI[lang]]);return}var k=kb(last);show(t?k[t][LI[lang]]:["I can help with tank size, drinking safety, recharge pits, monsoon upkeep, or a full plan. Try one of the buttons above.","मैं टैंक साइज़, पीने की सुरक्षा, रिचार्ज पिट, मानसून देखभाल या पूरी योजना में मदद कर सकता हूं। ऊपर के बटन आज़माएं।","Main tank size, peene ki safety, recharge pit, monsoon dekhbhal ya poore plan mein madad kar sakta hoon. Upar ke buttons try karo."][LI[lang]])};
+ if(!AI_ENDPOINT){local();$("aiOut").scrollIntoView({block:"nearest"});return}
+ b.disabled=true;show("…");
+ fetch(AI_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:q,lang:lang,context:last})})
+ .then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){if(!j||!j.answer)throw 0;show(String(j.answer))}).catch(local).then(function(){b.disabled=false});
+}
+$("ask").onclick=function(){ask($("q").value)};
+$("q").addEventListener("keydown",function(e){if(e.key==="Enter")ask(this.value)});
+Array.prototype.forEach.call(document.querySelectorAll(".chip[data-q]"),function(c){c.onclick=function(){$("q").value=c.dataset.q;ask(c.dataset.q)}});
+function plan(){ask("plan")}
+$("plan").onclick=function(){$("ai").scrollIntoView();plan()};
+$("plan2").onclick=plan;
+})();
+</script>
+</body>
+</html>
